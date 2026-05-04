@@ -1,28 +1,61 @@
-数据集统计
-来源：Chest X-Ray Images (Pneumonia)
+# Chest X-Ray Pneumonia Detection (CNN)
 
-训练集 (Train): XXX 张 (Normal: XX, Pneumonia: XX)
+这是一个基于深度学习的医疗辅助诊断项目，使用卷积神经网络 (CNN) 对胸部 X 光图像进行自动分析，识别是否存在肺炎。
 
-验证集 (Val): XXX 张 (从原始训练集按 8:2 划分)
+## 模型训练表现 (Training Performance)
 
-测试集 (Test): 624 张
+模型在训练过程中表现出稳健的收敛性，验证集指标与训练集高度同步，有效避免了严重的过拟合。
 
-模型结构与超参数
-模型类型: 卷积神经网络 (CNN)
+| 阶段 | 准确率 (Accuracy) | 损失值 (Loss) |
+| :--- | :--- | :--- |
+| **训练集 (Training)** | 93.75% | 0.1741 |
+| **验证集 (Validation)** | 93.48% | 0.1448 |
 
-结构简述: 3个卷积层（包含 ReLU 激活与最大池化） + 全连接层 + Dropout 层 (0.5)
+---
 
-优化器: Adam
+## 测试集评估结果 (Evaluation)
 
-学习率: 1e-4
+模型在完全未见过的测试数据上进行了评估，其核心指标如下：
 
-Batch Size: 32
+### 1. 分类性能报告 (Classification Report)
 
-Loss: Binary Crossentropy
+| 类别 (Class) | 精确率 (Precision) | 召回率 (Recall) | F1-Score |
+| :--- | :--- | :--- | :--- |
+| **Normal (正常)** | 0.94 | 0.62 | 0.75 |
+| **Pneumonia (肺炎)** | 0.81 | **0.98** | 0.89 |
+| **平均/总计 (Overall)** | 0.86 | 0.84 | 0.84 |
 
-结果分析 (任务二必答)
-指标分析: 观察测试集的 Recall（召回率）。通常肺炎识别的 Recall 会很高，这意味着模型能有效捕捉大部分患者。
+### 2. 核心结论分析
+*   **极高的肺炎检出率 (Recall = 0.98)**：在 624 张测试图像中，模型几乎识别出了所有的肺炎病例。对于医疗诊断而言，低漏诊率（高召回率）至关重要。
+*   **误诊权衡**：目前正常类别的召回率较低（0.62），这意味着模型倾向于将一些模糊的正常影像判定为肺炎（保守诊断）。这在临床初筛阶段是可以接受的，能确保患者得到进一步检查。
 
-医学意义: 在临床中，召回率优于准确率。漏诊（假阴性）会导致患者延误治疗，风险极大；而误诊（假阳性）可通过二次筛查纠正。
+---
+## 技术实现细节
 
-数据增强: 缓解了模型在小规模医学数据集上的过拟合问题，使验证集曲线更加平滑。
+*   **架构**: 多层卷积神经网络 (CNN)，包含 Convolutional 层、MaxPooling 层以及 Dropout 正则化层。
+*   **图像处理**: 
+    *   输入尺寸：根据预处理设定进行缩放。
+    *   数据增强：使用了 `ImageDataGenerator` 进行随机旋转、缩放和水平翻转。
+*   **优化器**: Adam Optimizer。
+*   **损失函数**: Binary Crossentropy (二元交叉熵)。
+
+---
+
+##  快速开始
+
+### 环境依赖
+- Python 3.x
+- TensorFlow / Keras
+- NumPy
+- Matplotlib / Seaborn (用于结果可视化)
+
+### 预测示例
+```python
+import tensorflow as tf
+
+# 加载模型
+model = tf.keras.models.load_model('your_model.h5')
+
+# 进行预测
+prediction = model.predict(preprocessed_image)
+print("诊断结果:", "肺炎" if prediction[0] > 0.5 else "正常")
